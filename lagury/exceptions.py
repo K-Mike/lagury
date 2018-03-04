@@ -1,0 +1,3 @@
+class LaguryException(Exception):
+    """"""
+    pass
