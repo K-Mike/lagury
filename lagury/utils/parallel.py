@@ -110,8 +110,8 @@ def many_producers_single_consumer(producer_task: Callable, consumer_task: Calla
 
         producer_queue.join()
 
-    consumer_queue.put(None)
-    consumer_queue.join()
-    consumer_thread.join()
+        consumer_queue.put(None)
+        consumer_queue.join()
+        consumer_thread.join()
 
     progress_bar.close()
