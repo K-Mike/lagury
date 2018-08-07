@@ -26,7 +26,11 @@ def run():
     assert node.id == node_id
 
     node_3 = db.DataNode(target_dir='test_dir_3', status='testing')
-    task_1 = db.Task(source_node=node_2, output_node=node_3, status='testing')
+    task_1 = db.Task(source_node=node_2,
+                     output_node=node_3,
+                     status='testing',
+                     parameters={'a': 1, 'b': 'test'},
+                     launch_file_name='test.py')
     task_1.input_nodes.append(node_1)
 
     db.session.add(task_1)

@@ -1,3 +1,4 @@
+import json
 from sqlalchemy import Column, Integer, DateTime, Text, create_engine, MetaData, ForeignKey
 from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
@@ -26,6 +27,8 @@ class Task(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     status = Column(Text, default='pending')
+    parameters_json = Column(Text, default='{}')
+    launch_file_name = Column(Text, nullable=False)
 
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
@@ -37,6 +40,17 @@ class Task(Base):
     output_node = relationship('DataNode', foreign_keys=[output_node_id])
 
     input_nodes = relationship('DataNode', secondary=task_input_nodes)
+
+    @property
+    def parameters(self):
+        return json.loads(self.parameters_json)
+
+    @parameters.setter
+    def parameters(self, value: dict):
+        if not isinstance(value, dict):
+            raise ValueError('Parameters should be dictionary.')
+
+        self.parameters_json = json.dumps(value)
 
 
 class DataNode(Base):
