@@ -29,6 +29,7 @@ class Task(Base):
     status = Column(Text, default='pending')
     parameters_json = Column(Text, default='{}')
     launch_file_name = Column(Text, nullable=False)
+    priority = Column(Integer, nullable=False, default=1)
 
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
@@ -52,6 +53,10 @@ class Task(Base):
 
         self.parameters_json = json.dumps(value)
 
+    @classmethod
+    def get_pending(cls):
+        return cls.query.order_by(cls.priority.desc(), cls.time_created.asc()).first()
+
 
 class DataNode(Base):
     """"""
@@ -60,6 +65,7 @@ class DataNode(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     status = Column(Text, default='pending')
     target_dir = Column(Text)
+    description = Column(Text, default='')
 
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
