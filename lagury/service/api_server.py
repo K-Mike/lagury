@@ -2,10 +2,12 @@ import os
 import shutil
 from flask import Flask, request, make_response, jsonify
 
-from . import db, utils
+from . import db, utils, loggers
+from . import config as cfg
 
 
 app = Flask(__name__)
+logger = loggers.set_logging(os.path.join(cfg.LOGS_DIR, 'api_server.log'))
 
 
 class IncorrectRequestException(Exception):
@@ -18,10 +20,12 @@ def _exception_handler(fn):
             return fn(*args, **kwargs)
 
         except IncorrectRequestException as ex:
+            logger.exception('Got incorrect request.')
             return make_response(jsonify(dict(error='IncorrectRequestException', value=str(ex))), 400)
 
         except Exception as ex:
             db.session.rollback()
+            logger.exception('Internal server error.')
             return make_response(jsonify(dict(error='InternalException', value=str(ex))), 500)
 
     return wrapped
