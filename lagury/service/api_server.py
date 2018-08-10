@@ -1,5 +1,6 @@
 import os
 import shutil
+import functools
 from flask import Flask, request, make_response, jsonify
 
 from . import db, utils, loggers
@@ -15,6 +16,7 @@ class IncorrectRequestException(Exception):
 
 
 def _exception_handler(fn):
+    @functools.wraps(fn)
     def wrapped(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
@@ -83,7 +85,7 @@ def add_task_local():
     if len(input_nodes) != len(input_node_ids):
         raise ValueError('One or more input nodes do not exist.')
 
-    output_node = db.DataNode(target_dir=utils.get_new_data_dir('data'))
+    output_node = db.DataNode(target_dir=utils.get_new_data_dir('output'))
     source_node = db.DataNode(target_dir=utils.get_new_data_dir('source', create_dir=False))
 
     shutil.copytree(launch_dir, source_node.target_dir)
@@ -115,16 +117,20 @@ def add_task_local():
 def add_data_node_local():
     """"""
     data = request.get_json(silent=True)
-    _check_input_arguments(data, required_fields=['data_dir_path'], optional_fields=['description'])
+    _check_input_arguments(data, required_fields=['data_dir_path'], optional_fields=['description', 'copy_data'])
 
     data_dir_path = os.path.abspath(data['data_dir_path'])
     description = data.get('description', '')
+    copy_data = data.get('copy_data', True)
 
     if not os.path.isdir(data_dir_path):
         raise ValueError(f'Got invalid data directory: {data_dir_path}')
 
-    target_dir = utils.get_new_data_dir('data', create_dir=False)
-    shutil.copytree(data_dir_path, target_dir)
+    if copy_data:
+        target_dir = utils.get_new_data_dir('data', create_dir=False)
+        shutil.copytree(data_dir_path, target_dir)
+    else:
+        target_dir = data_dir_path
 
     data_node = db.DataNode(target_dir=target_dir, description=description, status='finished')
     db.session.add(data_node)

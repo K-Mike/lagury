@@ -8,6 +8,7 @@ import time
 from . import db
 from . import config as cfg
 from .loggers import set_logging, StreamToLogger
+from .api_server import app
 
 
 def launch_task(task: db.Task):
@@ -48,16 +49,24 @@ def worker(worker_id: int):
     logger = set_logging(os.path.join(cfg.LOGS_DIR, 'core.log'))
 
     while True:
+        time.sleep(10)
         try:
             task = db.Task.get_pending()
+
+            if task is None:
+                continue
+
             launch_task(task)
 
         except Exception:
             logger.exception(f'Exception occurred in worker {worker_id}')
 
-        finally:
-            time.sleep(10)
-
 
 def start_service():
-    pass
+    """"""
+    # starting workers
+    worker_thread = threading.Thread(target=worker, args=(0,))
+    worker_thread.start()
+
+    # todo: running server locally in debug mode for now
+    app.run(port=cfg.SERVER_PORT, debug=True)
