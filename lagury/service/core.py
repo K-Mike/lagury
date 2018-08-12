@@ -56,7 +56,10 @@ def worker(worker_id: int):
             if task is None:
                 continue
 
+            logger.info(f'Launching task {task.id} with parameters {task.parameters} in worker {worker_id}')
             launch_task(task)
+            logger.info(f'Task {task.id} completed in worker {worker_id}. '
+                        f'Results saved to:\n{task.output_node.target_dir}')
 
         except Exception:
             logger.exception(f'Exception occurred in worker {worker_id}')

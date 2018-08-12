@@ -29,6 +29,7 @@ class Task(Base):
     status = Column(Text, default='pending')
     parameters_json = Column(Text, default='{}')
     launch_file_name = Column(Text, nullable=False)
+    description = Column(Text, default='')
     priority = Column(Integer, nullable=False, default=1)
 
     time_created = Column(DateTime(timezone=True), server_default=func.now())

@@ -30,7 +30,8 @@ def run():
                      output_node=node_3,
                      status='testing',
                      parameters={'a': 1, 'b': 'test'},
-                     launch_file_name='test.py')
+                     launch_file_name='test.py',
+                     description='some test task')
     task_1.input_nodes.append(node_1)
 
     db.session.add(task_1)
