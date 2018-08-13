@@ -2,6 +2,7 @@ import logging
 import time
 import os
 import sys
+import threading
 from cloghandler import ConcurrentRotatingFileHandler
 
 
@@ -85,6 +86,33 @@ class StreamToLogger:
 
     def flush(self):
         pass
+
+
+class PipeToLogger(threading.Thread):
+    def __init__(self, logger, log_level=logging.INFO):
+        """Setup the object with a logger and a log level and start the thread"""
+        threading.Thread.__init__(self)
+        self.daemon = False
+        self.log_level = log_level
+        self.logger = logger
+        self.fdRead, self.fdWrite = os.pipe()
+        self.pipeReader = os.fdopen(self.fdRead)
+        self.start()
+
+    def fileno(self):
+        """Return the write file descriptor of the pipe"""
+        return self.fdWrite
+
+    def run(self):
+        """Run the thread, logging everything"""
+        for line in iter(self.pipeReader.readline, ''):
+            self.logger.log(self.log_level, line.strip('\n'))
+
+        self.pipeReader.close()
+
+    def close(self):
+        """Close the write end of the pipe"""
+        os.close(self.fdWrite)
 
 
 def wrap_sys_in_logger(logger):

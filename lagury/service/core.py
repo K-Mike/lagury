@@ -7,7 +7,7 @@ import time
 
 from . import db
 from . import config as cfg
-from .loggers import set_logging, StreamToLogger
+from .loggers import set_logging, PipeToLogger
 from .api_server import app
 
 
@@ -26,13 +26,18 @@ def launch_task(task: db.Task):
     db.session.commit()
 
     try:
+        info_pipe = PipeToLogger(logger, logging.INFO)
+        error_pipe = PipeToLogger(logger, logging.ERROR)
+
         subprocess.run(
             [cfg.PYTHON_INTERPRETER_PATH, task.launch_file_name, json.dumps(meta)],
             cwd=task.source_node.target_dir,
-            stdout=StreamToLogger(logger, logging.INFO),
-            stderr=StreamToLogger(logger, logging.ERROR),
+            stdout=info_pipe,
+            stderr=error_pipe,
             check=True
         )
+        info_pipe.close()
+        error_pipe.close()
 
         task.status = 'finished'
         task.output_node.status = 'finished'
@@ -72,4 +77,4 @@ def start_service():
     worker_thread.start()
 
     # todo: running server locally in debug mode for now
-    app.run(port=cfg.SERVER_PORT, debug=True)
+    app.run(port=cfg.SERVER_PORT, debug=False)

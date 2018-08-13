@@ -21,7 +21,8 @@ if __name__ == '__main__':
     excel_files = glob.glob(os.path.join(data['input_dirs'][0], '*.xlsx'))
 
     for path in excel_files:
-        df = pd.read_csv(path)
+        print(path)
+        df = pd.read_excel(path)
 
-        output_path = os.path.join(data['output_dir'], os.path.basename(path))
+        output_path = os.path.join(data['output_dir'], os.path.basename(path).rsplit('.', 1)[0] + '.csv')
         df.to_csv(output_path, index=False)

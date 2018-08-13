@@ -82,7 +82,7 @@ def add_task_local():
     if not os.path.isfile(launch_file_path):
         raise ValueError(f'Launch file does not exist: {launch_file_path}')
 
-    input_nodes = db.DataNode.query.filter(db.DataNode.in_(input_node_ids)).all()
+    input_nodes = db.DataNode.query.filter(db.DataNode.id.in_(input_node_ids)).all()
 
     if len(input_nodes) != len(input_node_ids):
         raise ValueError('One or more input nodes do not exist.')

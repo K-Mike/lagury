@@ -56,7 +56,7 @@ class Task(Base):
 
     @classmethod
     def get_pending(cls):
-        return cls.query.order_by(cls.priority.desc(), cls.time_created.asc()).first()
+        return cls.query.filter(cls.status == 'pending').order_by(cls.priority.desc(), cls.time_created.asc()).first()
 
 
 class DataNode(Base):
