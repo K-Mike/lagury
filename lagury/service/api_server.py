@@ -60,6 +60,12 @@ def add_task():
     raise NotImplementedError()  # todo: implement
 
 
+@app.route('/task_manager/api/v1/data_node', methods=['POST'])
+def add_data_node():
+    """"""
+    raise NotImplementedError()  # todo: implement
+
+
 @app.route('/task_manager/api/v1/task/local', methods=['POST'])
 @_exception_handler
 def add_task_local():
