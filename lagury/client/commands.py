@@ -1,8 +1,10 @@
 import os
 import requests
-from typing import Union, Iterable
+from typing import Union, Iterable, Type
 
 from ..service import config as cfg
+from .models import Task
+from .algorithms import run_task
 
 
 class ServerApiException(Exception):
@@ -33,7 +35,7 @@ def _create_data_nodes_if_needed(data_list, copy_data, host, port):
 
 def send_local_task(launch_script_path: str,
                     input_data: Union[int, str, Iterable[Union[int, str]]],
-                    copy_data=True, parameters=None, priority=1, description=None,
+                    copy_data=True, copy_source=True, parameters=None, priority=1, description=None,
                     host='127.0.0.1', port=cfg.SERVER_PORT):
     """"""
     description = description or ''
@@ -60,7 +62,7 @@ def send_local_task(launch_script_path: str,
         parameters=parameters,
         launch_file_path=launch_script_path,
         description=description,
-        copy_source=True,
+        copy_source=copy_source,
         priority=priority
     ))
 
@@ -89,3 +91,30 @@ def send_local_data(data_dir, copy_data=True, description=None, host='127.0.0.1'
         return r.json()
     else:
         raise ServerApiException(f'Error: {r.status_code}\n{r.json()}')
+
+
+def send_algorithm_class(cls: Type[Task], input_data: Union[int, str, Iterable[Union[int, str]]],
+                         copy_data=True, parameters=None, priority=1, description=None,
+                         host='127.0.0.1', port=cfg.SERVER_PORT):
+    """"""
+    class_path = f'{cls.__module__}.{cls.__name__}'
+
+    # make sure that class is contained in algorithm's folder and truncate the prefix
+    prefix = 'lagury.client.algorithms.'
+    if not class_path.startswith(prefix):
+        raise ValueError(f'Class should be placed in lagury.client.algorithms. Got: {class_path}')
+
+    class_path = class_path[len(prefix):]
+    parameters['_class_path'] = class_path
+
+    return send_local_task(
+        launch_script_path=run_task.__file__,
+        input_data=input_data,
+        copy_data=copy_data,
+        copy_source=False,
+        parameters=parameters,
+        priority=priority,
+        description=description,
+        host=host,
+        port=port
+    )
